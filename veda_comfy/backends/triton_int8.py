@@ -85,9 +85,18 @@ def create(info) -> base.Backend:
     try:
         _kernel()
     except ImportError as error:
+        # ROCm torch on Linux pins its own build, pytorch-triton-rocm; the
+        # PyPI `triton` would replace it with one torch was not built for.
         package = ('triton-windows' if sys.platform == 'win32'
-                   else 'triton')
-        raise base.BackendUnavailable(
-            f'Triton is not installed ({error}); pip install {package}'
-        ) from error
+                   else 'pytorch-triton-rocm' if rocm else 'triton')
+        raise base.MissingDependency(
+            f'Triton is not installed ({error}). Install it into the '
+            'Python that runs ComfyUI, then restart ComfyUI:\n'
+            f'  python -m pip install {package}\n'
+            'On ComfyUI portable run it as '
+            f'python_embeded\\python.exe -m pip install {package}.\n'
+            f'Triton 没有安装（{error}）。请用运行 ComfyUI 的那个 Python 安装，'
+            f'然后重启 ComfyUI：python -m pip install {package}'
+            '（ComfyUI 便携版用 python_embeded\\python.exe -m pip install '
+            f'{package}）。') from error
     return TritonInt8Backend(info.family.upper())
