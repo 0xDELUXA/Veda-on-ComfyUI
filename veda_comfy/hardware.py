@@ -118,8 +118,10 @@ def _describe(device_str: str) -> DeviceInfo:
         cc = (props.major, props.minor)
         if torch.version.hip:
             # The family is the gfx target; gcnArchName may carry feature
-            # flags after it, e.g. 'gfx90a:sramecc+:xnack-'.
-            arch = props.gcnArchName.split(':')[0]
+            # flags after it, e.g. 'gfx90a:sramecc+:xnack-'. A build that
+            # does not report it gets 'rocm', which no kernel claims.
+            arch = (getattr(props, 'gcnArchName', '') or '').split(':')[0]
+            arch = arch or 'rocm'
             return DeviceInfo('cuda', index, props.name, cc, arch, 'rocm',
                               os_name, machine, props.total_memory, False,
                               None)
