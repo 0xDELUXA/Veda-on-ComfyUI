@@ -108,10 +108,9 @@ Blackwell 上的主要收益来自把一个 key tile **多播给 cluster 里的�
 每 block 99 KiB 的上限（越了的话是编译期 `OutOfResources`），以及 4 warps / 3 stages 在这两
 代上是不是还是最优（要用 `tools/tune_int8.py` 扫）。
 
-第一件事即使发生也不会坏图：`backends.resolve()` 把 `_load` 和 `self_test` 包在
-`except BackendUnavailable` / `except Exception` 里，失败会记进 `attempts`、写日志，并在节点上
-显示 `Veda off: no sparse kernel works on ...` 加原因，然后让模型跑自己的注意力。代价是没有
-加速，不是坏结果。
+第一件事即使发生也不会悄悄失效：`backends.resolve()` 把 `_load` 和 `self_test` 包在
+`except BackendUnavailable` / `except Exception` 里，失败会记进 `attempts` 和 `Resolution.error`、
+写日志，节点执行时就报错，附上环境和 traceback，让用户提 issue（见 comfyui_node.md）。
 
 ## ROCm（RDNA3 / RDNA4）
 
@@ -127,7 +126,7 @@ TMA 那条路照旧到不了（`USE_TMA` 为 `False`）。改的只有三处：
   2 stages 反而比 3 stages 慢很多，key block 128 也更慢，所以其余参数保持原样。
 - 共享内存：按上面算的峰值约 88 KiB，而 RDNA 每个 workgroup 的 LDS 是 64 KiB。AMD 后端的
   流水方式和 NVIDIA 不同，实测这组配置能编译并通过自检；如果别的 Triton 版本越界，会是
-  编译期 `OutOfResources`，节点退回模型自己的注意力，不会坏图。
+  编译期 `OutOfResources`，在自检时被捕获，节点报错并附上提 issue 用的完整报告。
 
 ## 待做
 

@@ -15,7 +15,7 @@
 | DGX Spark（GB10） | sm121 | triton-int8 | — | 🧪 | aarch64 + CUDA 13 |
 | Radeon RX 9000（RDNA4） | gfx12 | triton-int8 | ✅（RX 9060 XT） | 🧪 | HIP 上 8 warps，见 int8_kernel.md |
 | Radeon RX 7000（RDNA3） | gfx11 | triton-int8 | 🧪 | 🧪 | |
-| SM75 及以下 / 其他 ROCm（RDNA2、CDNA）/ CPU | — | 无 | — | — | 节点让模型跑自己的注意力 |
+| SM75 及以下 / 其他 ROCm（RDNA2、CDNA）/ CPU | — | 无 | — | — | 节点报错，说明支持哪些硬件 |
 | Apple silicon（M 系列） | — | mlx | — | — | macOS ✅（M3 Pro） |
 
 一个 kernel 覆盖 SM80 起的所有 CUDA 卡和 ROCm 上的 RDNA3 / RDNA4，所以这张表现在是"验证到哪了"，不是"用哪个实现"。

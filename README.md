@@ -27,9 +27,11 @@ MiniMax-H3 (T2VA, FL2VA and R2VA): one node, MODEL in and MODEL out.
   Turbo and style LoRAs, fine-tuned and quantized H3 checkpoints,
   first/last-frame and reference conditioning, and other block patches
   keep working.
-- **Safe by default.** Every kernel passes a self-test on the GPU before
-  it is used. Anything Veda cannot handle runs the model's own attention
-  and says so on the node, rather than producing a broken render.
+- **Never silently off.** Every kernel passes a self-test on the GPU
+  before it is used. When Veda cannot run, the prompt stops with the
+  reason instead of quietly rendering without acceleration: a missing
+  package or a node in the wrong place comes with the fix, anything else
+  with a ready-to-paste report for a GitHub issue.
 - **Nothing extra to install.** The sparse kernel ships with the node;
   installing from the Comfy Registry pulls in Triton (NVIDIA SM80 and
   newer, AMD RDNA3 / RDNA4 on ROCm) or MLX (Apple silicon).
@@ -97,8 +99,8 @@ Attention computed: 10.9% of full attention (89.1% skipped)
 
 Before sampling the node names the kernel it will use and the sparsity;
 while sampling, the video size and the trained tile plan it matched; at
-the end, how much of full attention was actually computed. A line
-starting `Veda off` gives the reason Veda is not running, and `nearest
+the end, how much of full attention was actually computed. If Veda
+cannot run, the prompt stops with an error that says why; `nearest
 trained size: ...` on the tile plan line means the video is outside the
 trained set. `verbose` adds per-phase timing, call counts and predictor
 details.
@@ -146,7 +148,8 @@ movement, not attention.
 
 One Triton kernel covers every NVIDIA GPU from SM80 on and AMD RDNA3 /
 RDNA4 on ROCm, Windows and Linux alike. Older cards, other AMD GPUs and
-CPU have no kernel: the node says so and the model runs its own attention.
+CPU have no kernel: the node stops with an error saying so; bypass it to
+render on those.
 
 | Hardware | Status |
 |---|---|

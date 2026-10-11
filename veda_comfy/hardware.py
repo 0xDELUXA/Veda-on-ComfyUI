@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import dataclasses
 import functools
+import importlib.metadata
 import platform
 import sys
 
@@ -154,3 +155,30 @@ def describe(device: torch.device | str) -> DeviceInfo:
     if device.type == 'cuda' and device.index is None:
         device = torch.device('cuda', torch.cuda.current_device())
     return _describe(str(device))
+
+
+# Distributions whose version decides whether a kernel builds: Triton
+# under its three names (PyPI, Windows, the copy ROCm torch pins) and MLX.
+_KERNEL_PACKAGES = ('triton', 'triton-windows', 'pytorch-triton-rocm', 'mlx')
+
+
+def environment(info: DeviceInfo) -> list[str]:
+    """What an issue report needs to reproduce a failure on `info`."""
+    from . import __version__  # pylint: disable=import-outside-toplevel
+    toolkit = (f'HIP {torch.version.hip}' if torch.version.hip
+               else f'CUDA {torch.version.cuda}' if torch.version.cuda
+               else 'no GPU toolkit')
+    packages = []
+    for name in _KERNEL_PACKAGES:
+        try:
+            packages.append(f'{name} {importlib.metadata.version(name)}')
+        except importlib.metadata.PackageNotFoundError:
+            pass
+    memory = (f', {info.total_memory / 2**30:.1f} GB'
+              if info.total_memory else '')
+    return [f'Veda: {__version__}',
+            f'OS: {info.os} {platform.release()} ({info.machine})',
+            f'Python: {platform.python_version()}',
+            f'torch: {torch.__version__} ({toolkit})',
+            f'Kernel packages: {", ".join(packages) or "none installed"}',
+            f'Device: {info.name}, {info.family}, cc {info.cc}{memory}']
